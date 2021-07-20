@@ -69,7 +69,6 @@ export class MattermostView extends EventEmitter {
      */
         this.usesAsteriskForUnreads = null;
 
-        this.faviconMemoize = new Map();
         this.currentFavicon = null;
         log.info(`BrowserView created for server ${this.server.name}`);
 
@@ -302,15 +301,10 @@ export class MattermostView extends EventEmitter {
             // if unread state is stored for that favicon, retrieve value.
             // if not, get related info from preload and store it for future changes
             this.currentFavicon = favicons[0];
-            if (this.faviconMemoize.has(favicons[0])) {
-                appState.updateUnreads(this.server.name, this.faviconMemoize.get(favicons[0]));
-            } else {
-                this.findUnreadState(favicons[0]);
-            }
+            this.findUnreadState(favicons[0]);
         }
     }
 
-    // if favicon is null, it will affect appState, but won't be memoized
     findUnreadState = (favicon) => {
         try {
             this.view.webContents.send(IS_UNREAD, favicon, this.server.name);
@@ -324,12 +318,7 @@ export class MattermostView extends EventEmitter {
     // so don't memoize as we don't have the favicons and there is no rush to find out.
     handleFaviconIsUnread = (e, favicon, serverName, result) => {
         if (this.server && serverName === this.server.name) {
-            if (favicon) {
-                this.faviconMemoize.set(favicon, result);
-            }
-            if (favicon === null || favicon === this.currentFavicon) {
-                appState.updateUnreads(serverName, result);
-            }
+            appState.updateUnreads(serverName, result);
         }
     }
 }
