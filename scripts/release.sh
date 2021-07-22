@@ -112,6 +112,11 @@ case "${1}" in
             tag "${new_pkg_version}" "Released on $(date -u)"
             print_info "Locally created an final version. In order to build you'll have to:"
             print_info "$ git push --follow-tags ${git_origin} ${branch_name}:${branch_name}"
+            print_info "--------\n"
+            print_info "  == AFTER RELEASE FINISHES == "
+            print_info "once the release is created you'll need to go to latest/.gitlab-ci.yml"
+            print_info "and update the latest version variables for the desktop,"
+            print_info "run the the pipeline and from the list of jobs run the desktop one"
         else
             print_error "Can't release on a non release-X.Y branch"
             exit 2
