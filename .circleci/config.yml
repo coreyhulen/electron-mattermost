@@ -64,7 +64,7 @@ commands:
         type: string
         default: ""
     steps:
-      - run: wget -qO - https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/Release.key | apt-key add -
+      - run: curl -fsSL https://download.opensuse.org/repositories/Emulators:/Wine:/Debian/xUbuntu_18.04/Release.key | gpg --dearmor | tee /etc/apt/trusted.gpg.d/wine.gpg > /dev/null
       - run: apt-get update && apt-get -y install << parameters.apt_opts >>
       - run: npm ci
 
