@@ -7,6 +7,9 @@ const {spawn} = require('electron-notarize/lib/spawn.js');
 
 const SETUID_PERMISSIONS = '4755';
 
+// cf. MM-22377
+// https://mattermost.atlassian.net/browse/MM-22377
+
 exports.default = async function afterPack(context) {
     if (context.electronPlatformName === 'linux') {
         context.targets.forEach(async (target) => {
