@@ -10,9 +10,6 @@ declare global {
             on: (channel: string, listener: (...args: any[]) => void) => void;
             invoke: typeof ipcRenderer.invoke;
         };
-        os: {
-            isWindows10: boolean;
-        };
         process: {
             platform: NodeJS.Platform;
             env: {
