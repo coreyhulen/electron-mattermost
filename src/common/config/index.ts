@@ -222,6 +222,11 @@ export default class Config extends EventEmitter {
     get useSpellChecker() {
         return this.combinedData?.useSpellChecker ?? defaultPreferences.useSpellChecker;
     }
+
+    get spellCheckerURL(): (string|undefined) {
+        return this.combinedData?.spellCheckerURL;
+    }
+
     get spellCheckerLocale() {
         return this.combinedData?.spellCheckerLocale ?? defaultPreferences.spellCheckerLocale;
     }

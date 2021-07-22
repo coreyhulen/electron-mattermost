@@ -34,6 +34,7 @@ export type ConfigV3 = {
     spellCheckerLocale: string;
     darkMode: boolean;
     downloadLocation: string;
+    spellCheckerURL?: string;
 }
 
 export type ConfigV2 = {
@@ -56,6 +57,7 @@ export type ConfigV2 = {
     enableHardwareAcceleration: boolean;
     autostart: boolean;
     spellCheckerLocale: string;
+    spellCheckerURL?: string;
     darkMode: boolean;
     downloadLocation: string;
 }
@@ -76,6 +78,7 @@ export type ConfigV1 = {
     };
     showUnreadBadge: boolean;
     useSpellChecker: boolean;
+    spellCheckerURL?: string;
     enableHardwareAcceleration: boolean;
     autostart: boolean;
     spellCheckerLocale: string;

@@ -34,6 +34,7 @@ type State = DeepPartial<CombinedConfig> & {
     firstRun?: boolean;
     savingState: SavingStateItems;
     userOpenedDownloadDialog: boolean;
+    allowSaveSpellCheckerURL: boolean;
 }
 
 type SavingStateItems = {
@@ -62,6 +63,7 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
     bounceIconRef: React.RefObject<HTMLInputElement>;
     showUnreadBadgeRef: React.RefObject<HTMLInputElement>;
     useSpellCheckerRef: React.RefObject<HTMLInputElement>;
+    spellCheckerURLRef: React.RefObject<HTMLInputElement>;
     enableHardwareAccelerationRef: React.RefObject<HTMLInputElement>;
 
     saveQueue: SaveQueueItem[];
@@ -77,6 +79,7 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
                 servers: SavingState.SAVING_STATE_DONE,
             },
             userOpenedDownloadDialog: false,
+            allowSaveSpellCheckerURL: false,
         };
 
         this.getConfig();
@@ -90,6 +93,7 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
         this.showUnreadBadgeRef = React.createRef();
         this.useSpellCheckerRef = React.createRef();
         this.enableHardwareAccelerationRef = React.createRef();
+        this.spellCheckerURLRef = React.createRef();
 
         this.saveQueue = [];
     }
@@ -327,6 +331,30 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
         this.setState({userOpenedDownloadDialog: false});
     }
 
+    saveSpellCheckerURL = (): void => {
+        window.timers.setImmediate(this.saveSetting, CONFIG_TYPE_APP_OPTIONS, {key: 'spellCheckerURL', data: this.state.spellCheckerURL});
+    }
+
+    resetSpellCheckerURL = (): void => {
+        this.setState({spellCheckerURL: undefined, allowSaveSpellCheckerURL: false});
+        window.timers.setImmediate(this.saveSetting, CONFIG_TYPE_APP_OPTIONS, {key: 'spellCheckerURL', data: null});
+    }
+
+    handleChangeSpellCheckerURL= (e: React.ChangeEvent<HTMLInputElement>): void => {
+        const dictionaryURL = e.target.value;
+        let allowSaveSpellCheckerURL;
+        try {
+            // eslint-disable-next-line no-new
+            new URL(dictionaryURL);
+            allowSaveSpellCheckerURL = true;
+        } catch {
+            allowSaveSpellCheckerURL = false;
+        }
+        this.setState({
+            spellCheckerURL: dictionaryURL,
+            allowSaveSpellCheckerURL,
+        });
+    }
     updateTeam = (index: number, newData: Team) => {
         const teams = this.state.teams || [];
         teams[index] = newData;
@@ -495,11 +523,58 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
                     {'Setting takes effect after restarting the app.'}
                 </FormText>
             </FormCheck>);
-
+        if (process.platform !== 'darwin') {
+            if (this.state.spellCheckerURL === null || typeof this.state.spellCheckerURL === 'undefined') {
+                options.push(
+                    <Button
+                        id='editSpellcheckerURL'
+                        key='editSpellcheckerURL'
+                        onClick={() => this.setState({spellCheckerURL: '', allowSaveSpellCheckerURL: false})}
+                        variant='link'
+                    >{'Use an alternative dictionary URL'}</Button>,
+                );
+            } else {
+                options.push(
+                    <div
+                        style={settingsPage.container}
+                        key='containerInputSpellchekerURL'
+                    >
+                        <input
+                            disabled={!this.state.useSpellChecker}
+                            style={settingsPage.downloadLocationInput}
+                            key='inputSpellCheckerURL'
+                            id='inputSpellCheckerURL'
+                            ref={this.spellCheckerURLRef}
+                            onChange={this.handleChangeSpellCheckerURL}
+                            value={this.state.spellCheckerURL}
+                        />
+                        <Button
+                            disabled={!this.state.allowSaveSpellCheckerURL}
+                            key='saveSpellCheckerURL'
+                            style={settingsPage.downloadLocationButton}
+                            id='saveSpellCheckerURL'
+                            onClick={this.saveSpellCheckerURL}
+                        >
+                            <span>{'Save'}</span>
+                        </Button>
+                        <FormText>
+                            {'Specify the url where dictionary definitions can be retrieved'}
+                        </FormText>
+                        <Button
+                            id='revertSpellcheckerURL'
+                            key='revertSpellcheckerURL'
+                            onClick={this.resetSpellCheckerURL}
+                            variant='link'
+                        >{'Revert to default'}</Button>
+                    </div>);
+            }
+        }
         if (window.process.platform === 'darwin' || window.process.platform === 'win32') {
             const TASKBAR = window.process.platform === 'win32' ? 'taskbar' : 'Dock';
             options.push(
-                <FormCheck>
+                <FormCheck
+                    key='showunreadbadge'
+                >
                     <FormCheck.Input
                         type='checkbox'
                         key='inputShowUnreadBadge'
@@ -585,10 +660,11 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
 
         if (window.process.platform === 'darwin' || window.process.platform === 'linux') {
             options.push(
-                <FormCheck>
+                <FormCheck
+                    key='inputShowTrayIcon'
+                >
                     <FormCheck.Input
                         type='checkbox'
-                        key='inputShowTrayIcon'
                         id='inputShowTrayIcon'
                         ref={this.showTrayIconRef}
                         checked={this.state.showTrayIcon}
@@ -652,10 +728,11 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
         }
 
         options.push(
-            <FormCheck>
+            <FormCheck
+                key='inputEnableHardwareAcceleration'
+            >
                 <FormCheck.Input
                     type='checkbox'
-                    key='inputEnableHardwareAcceleration'
                     id='inputEnableHardwareAcceleration'
                     ref={this.enableHardwareAccelerationRef}
                     checked={this.state.enableHardwareAcceleration}
@@ -670,7 +747,10 @@ export default class SettingsPage extends React.PureComponent<Record<string, nev
         );
 
         options.push(
-            <div style={settingsPage.container}>
+            <div
+                style={settingsPage.container}
+                key='containerDownloadLocation'
+            >
                 <hr/>
                 <div>{'Download Location'}</div>
                 <input
